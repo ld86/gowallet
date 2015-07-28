@@ -9,6 +9,8 @@ func New() *Cli {
 		commands: map[string]func([]string) error{
 			"g":   GetPassword,
 			"get": GetPassword,
+			"p":   PutPassword,
+			"put": PutPassword,
 		},
 	}
 }

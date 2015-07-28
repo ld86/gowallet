@@ -7,7 +7,7 @@ import (
 )
 
 func GetPassword(args []string) error {
-	w := wallet.New()
+	w := wallet.ReadFromFile(wallet.WalletFilename)
 	fmt.Println(w)
 	return nil
 }

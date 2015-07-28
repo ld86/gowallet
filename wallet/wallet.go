@@ -1,6 +1,13 @@
 package wallet
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+	"syscall"
+)
+
+var WalletFilename = os.Getenv("HOME") + "/.wallet"
 
 type Wallet struct {
 	Nonce     string
@@ -11,10 +18,10 @@ func (wallet *Wallet) marshal() ([]byte, error) {
 	return json.Marshal(wallet)
 }
 
-func unmarshal(data []byte) *Wallet {
+func unmarshal(data []byte) (*Wallet, error) {
 	var wallet Wallet
-	json.Unmarshal(data, &wallet)
-	return &wallet
+	err := json.Unmarshal(data, &wallet)
+	return &wallet, err
 }
 
 func New() *Wallet {
@@ -25,5 +32,24 @@ func New() *Wallet {
 }
 
 func ReadFromFile(filename string) *Wallet {
-	return nil
+	content, readErr := ioutil.ReadFile(filename)
+	if e, ok := readErr.(*os.PathError); ok && e.Err == syscall.ENOENT {
+		return New()
+	}
+	w, unmarshalErr := unmarshal(content)
+	if unmarshalErr != nil {
+		panic(unmarshalErr)
+	}
+	return w
+}
+
+func SaveToFile(filename string, w *Wallet) {
+	content, marshalErr := w.marshal()
+	if marshalErr != nil {
+		panic(marshalErr)
+	}
+	writeErr := ioutil.WriteFile(filename, content, 0600)
+	if writeErr != nil {
+		panic(writeErr)
+	}
 }
